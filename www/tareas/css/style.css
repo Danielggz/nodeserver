@@ -1,4 +1,13 @@
 /*
+@import url('https://fonts.googleapis.com/css?family=Acme');
+
+#titulo h1{
+    margin-left: 350px;
+    font-family: 'Acme', sans-serif;
+    font-size: 80px;
+    color: #ea311a;
+}
+
 #contenedor
 {
     margin: 0 auto
@@ -19,3 +28,51 @@ h1
 
 }
 */
+
+/*BOTONES 
+http://blog.hostdime.com.co/5-sencillos-efectos-hover-para-botones/
+
+.btn {
+    background: #b24c20;
+    background-image: -webkit-linear-gradient(top, #b24c20, #c14f20);
+    background-image: -moz-linear-gradient(top, #b24c20, #c14f20);
+    background-image: -ms-linear-gradient(top, #b24c20, #c14f20);
+    background-image: -o-linear-gradient(top, #b24c20, #c14f20);
+    background-image: linear-gradient(to bottom, #b24c20, #c14f20);
+    -webkit-border-radius: 28;
+    -moz-border-radius: 28;
+    border-radius: 28px;
+    font-family: Arial;
+    color: #ffffff;
+    font-size: 20px;
+    padding: 10px 20px 10px 20px;
+    text-decoration: none;
+}
+
+.btn:hover {
+    background: #ff8423;
+    background-image: -webkit-linear-gradient(top, #ff8423, #bc5a23);
+    background-image: -moz-linear-gradient(top, #ff8423, #bc5a23);
+    background-image: -ms-linear-gradient(top, #ff8423, #bc5a23);
+    background-image: -o-linear-gradient(top, #ff8423, #bc5a23);
+    background-image: linear-gradient(to bottom, #ff8423, #bc5a23);
+    text-decoration: none;
+}
+*/
+
+/*
+TABLA
+body {font-family: Arial, Helvetica, sans-serif;}
+
+table {     font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    font-size: 12px;    margin: 45px;     width: 480px; text-align: left;    border-collapse: collapse; }
+
+th {     font-size: 13px;     font-weight: normal;     padding: 8px;     background: #b9c9fe;
+    border-top: 4px solid #aabcfe;    border-bottom: 1px solid #fff; color: #039; }
+
+td {    padding: 8px;     background: #e8edff;     border-bottom: 1px solid #fff;
+    color: #669;    border-top: 1px solid transparent; }
+
+tr:hover td { background: #d0dafd; color: #339; }
+*/
+
