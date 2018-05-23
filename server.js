@@ -4,10 +4,18 @@ var fs = require('fs');
 var mysql = require('mysql'); //LIBRERÍA MYSQL
 var app = express(); 
 
+// create application/json parser
+var jsonParser = bodyParser.json();
+// create application/x-www-form-urlencoded parser
+var urlencodedParser = bodyParser.urlencoded({ extended: false });
+app.use(jsonParser);
+app.use(urlencodedParser);
+
 //<------CONECTAR CON BASE DE DATOS MYSQL--------> 
 
 // NPM INSTALL MYSQL --SAVE (GUARDAR MYSQL EN PACKAGE.JSON)
 
+//CONECTAR CON BASE DE DATOS
 var connection = mysql.createConnection({
    host: 'localhost',
    user: 'master',
@@ -19,17 +27,9 @@ connection.connect(function(error){
    if(error){
       throw error;
    }else{
-      console.log('Conexion correcta. Conectado como ' + connection.user);
+      console.log('Conexion correcta. Conectado como master');
    }
 });
-
-
-// create application/json parser
-var jsonParser = bodyParser.json();
-// create application/x-www-form-urlencoded parser
-var urlencodedParser = bodyParser.urlencoded({ extended: false });
-app.use(jsonParser);
-app.use(urlencodedParser);
 
 //ARRAY GLOBAL DE TAREAS
 var listaTareas = [];
@@ -48,7 +48,12 @@ fileExists("./www/tareas/BD/almacen.json", function(err, exists){
   } 
 });
 
-//EJECUTA LA LISTA DE TAREAS EN EL INDEX
+
+//<-----------------------------TRATAMIENTO DE DATOS EN FICHERO DE TEXTO--------------------------------->
+
+
+
+//EJECUTA LA LISTA DE TAREAS EN EL INDEX MEDIANTE EL FICHERO DE TEXTO
 /*
 app.get('/', function(req, res){
   
@@ -62,48 +67,39 @@ app.get('/', function(req, res){
 });
 */
 
-app.get('/', function(req, res){
-  
-  fs.readFile('./www/tareas/indextareas.html', 'utf-8', function(err, text){
-    text = text.replace("[sustituir]", cargarTareasBD() );
 
-    res.send(text);
-  });
-  
-  
-});
-
-//MÉTODO GET PARA ELIMINAR TAREAS
+//MÉTODO GET PARA ELIMINAR TAREAS DEL FICHERO DE TEXTO
 app.get('/eliminar/:id?', function(req, res){
 
 
-    listaTareas.splice(req.query.id,1);
-    actualizarFich();
-    console.log('tarea eliminada');
-    res.redirect('/');
-  
+  listaTareas.splice(req.query.id,1);
+  actualizarFich();
+  console.log('tarea eliminada');
+  res.redirect('/');
+
 });
 
-//EDITAR MÉTODO GET
+
+//EDITAR EN FICHERO DE TEXTO MÉTODO GET
 app.get('/editar/:id?', function(req, res){
 
-  var id = req.query.id;
-  
-  fs.readFile('./www/tareas/indextareas.html', 'utf-8', function(err, text){
-    var fila = cargarTareas(listaTareas);
+var id = req.query.id;
 
-    text = text.replace("[sustituir]", fila);
-    text = text.replace('placeholder="Nombre de usuario"','value=' + listaTareas[id].nombre);
-    text = text.replace('placeholder="nombre de la tarea"', 'value=' + listaTareas[id].tarea);
-    text = text.replace('value="id_edit"', 'value=' + id);
-    text = text.replace('action="/"', 'value="/editar"');
-  
-    res.send(text);
+fs.readFile('./www/tareas/indextareas.html', 'utf-8', function(err, text){
+  var fila = cargarTareas(listaTareas);
+
+  text = text.replace("[sustituir]", fila);
+  text = text.replace('placeholder="Nombre de usuario"','value=' + listaTareas[id].nombre);
+  text = text.replace('placeholder="nombre de la tarea"', 'value=' + listaTareas[id].tarea);
+  text = text.replace('value="id_edit"', 'value=' + id);
+  text = text.replace('action="/"', 'value="/editar"');
+
+  res.send(text);
   });
-  
+
 });
 
-//EDITAR MÉTODO POST 
+//EDITAR MÉTODO POST EN FICHERO
 app.post('/editar', function(req, res){
 
   var nombre = req.body.nombre || '';
@@ -140,7 +136,7 @@ app.post('/editar', function(req, res){
 
 });
 
-//AGREGAR DATOS A LA LISTA
+//AGREGAR DATOS A LA LISTA DEL FICHERO
 app.post('/', function(req, res) {
 
   console.log('Peticion recibida');
@@ -189,12 +185,147 @@ app.post('/', function(req, res) {
   
 });
 
+//<----------------------------------------------------------------------------------------------------------->
 
-//<-----------MÉTODOS-------------->
+
+
+//<-----------------------------------TRATAMIENTO DE DATOS EN BASE DE DATOS----------------------------------->
+
+
+//EJECUTA LA LISTA DE TAREAS EN EL INDEX MEDIANTE LA BASE DE DATOS
+
+app.get("/", function(req, res){
+  connection.query("SELECT * FROM tareas", function(error, result)
+  {
+    if(error)
+    {
+       throw error;
+    }
+    else
+    {
+      var registros = cargarTareasBD(result);
+      
+      fs.readFile('./www/tareas/indextareas.html', 'utf-8', function(err, text){
+        text = text.replace("[sustituir]", registros);
+    
+        res.send(text);
+      });
+    }
+  });
+ 
+});
+
+
+//ELIMINAR TAREAS CON BASE DE DATOS
+
+app.get("/eliminarBD/:id?", function(req, res){
+
+  var id = req.query.id;
+
+  connection.query("DELETE FROM tareas WHERE id=" + id, function(error){
+    if(error)
+    {
+      throw error;
+    }
+    else
+    {
+      console.log("tarea con id= " + id + " eliminada en BD");
+      res.redirect('/');
+    }
+  });
+});
+
+
+//EDITAR TAREAS CON BASE DE DATOS
+//GET
+app.get("/editarBD/:id?", function(req, res)
+{
+  var id = req.query.id;
+
+  connection.query("SELECT * FROM tareas", function(error, result)
+  {
+    if(error)
+    {
+       throw error;
+    }
+    else
+    {
+      var registros = cargarTareasBD(result);
+      
+      fs.readFile('./www/tareas/indextareas.html', 'utf-8', function(err, text)
+      {
+        var fila = registros;
+        for(var i=0; i<result.length; i++)
+        {
+          if(result[i].id==id)
+          {
+            text = text.replace("[sustituir]", fila);
+            text = text.replace('placeholder="Nombre de usuario"','value="' + result[i].nombre + '"');
+            text = text.replace('placeholder="nombre de la tarea"', 'value="' + result[i].tarea + '"');
+            text = text.replace('value="id_edit"', 'value=' + result[i].id);
+            text = text.replace('action="/"', 'value="/editarBD"');
+          }
+        }
+        
+      
+        res.send(text);
+      });
+    }
+  });
+  
+});
+
+//POST
+app.post("/editarBD", function(req, res)
+{
+  var nombre = req.body.nombre || '';
+  var tarea = req.body.tarea || '';
+  var id = req.body.id || '';
+
+  connection.query("SELECT * FROM tareas", function(error, result)
+  {
+    if(error)
+    {
+       throw error;
+    }
+    else
+    {
+      for(var i=0; i<result.length;i++)
+      {
+        if(result[i].id == id)
+        {
+          result[i].nombre = nombre;
+          result[i].tarea = tarea;
+
+          console.log('MOVIDA nuevo dato: ' + result[i].nombre);
+          console.log('nuevo dato: ' + result[i].tarea);
+
+          console.log('Guardando datos en BD..');
+          editarFilaBD(result[i].nombre, result[i].tarea, result[i].id);
+          console.log('Datos editados correctamente.');
+          console.log(result[i]);
+
+        }
+      }
+      
+    }
+  });
+
+  
+  
+ 
+
+  res.redirect('/');
+});
+
+//<------------------------------------------------------------------------------------------------------------->
+
+
+//<---------------------------------------------MÉTODOS--------------------------------------------------------->
 
 
 //CARGAR LA LISTA DE TAREAS EN EL INDEX
-function cargarTareas() {
+function cargarTareas(tareas) {
 
   var lista = "";
   for (var indice in tareas) {
@@ -213,29 +344,16 @@ function cargarTareas() {
   return lista;
 }
 
-function cargarTareasBD() //CARGAR LA LISTA DE TAREAS PERO UTILIZANDO LA BASE DE DATOS CON SELECT
+//CARGAR LA LISTA DE TAREAS PERO UTILIZANDO LA BASE DE DATOS
+function cargarTareasBD(arrayDB) 
 {
-  var arrayDB = [];
-  var selectDB = connection.query("SELECT * FROM tareas", function(err, result){
-    if(err)
-    {
-      throw err;
-    }
-    else
-    {
-      console.log(result);
-      arrayDB = result;
-    }
-  });
-
-
 
   var lista = "";
   for (var indice in arrayDB) {
     
-    var fila = "<tr> <td>[id]</td> <td>[nombre]</td> <td>[tarea]</td> <td><a href='/eliminar?id= " + indice + "' class='button'> Eliminar tarea </a> </button></td> <td><a href='/editar?id=" + indice + "'> Editar tarea </a> </td></tr>";
+    var fila = "<tr> <td>[id]</td> <td>[nombre]</td> <td>[tarea]</td> <td><a href='/eliminarBD?id= " + arrayDB[indice].id + "' class='button'> Eliminar tarea </a> </button></td> <td><a href='/editarBD?id=" + arrayDB[indice].id + "'> Editar tarea </a> </td></tr>";
 
-      fila = fila.replace("[id]", indice);
+      fila = fila.replace("[id]", arrayDB[indice].id);
       //fila = fila.split("[id]").join(indice);
       fila = fila.replace("[nombre]", arrayDB[indice].nombre);
       fila = fila.replace("[tarea]", arrayDB[indice].tarea);
@@ -246,6 +364,26 @@ function cargarTareasBD() //CARGAR LA LISTA DE TAREAS PERO UTILIZANDO LA BASE DE
   
   return lista;
 }
+
+
+//DEVOLVER DATOS EN BD
+/*
+function DataBD()
+{
+  connection.query("SELECT * FROM tareas", function(error, result)
+  {
+    if(error)
+    {
+       throw error;
+    }
+    else
+    {
+      var registros = cargarTareasBD(result);
+      return registros;
+    }
+ });
+}
+*/
 
 //actualizar FICHERO DE DATOS
 function actualizarFich()
@@ -258,7 +396,7 @@ function actualizarFich()
   });
 }
 
-//actualizar BASE DE DATOS
+//AGREGAR DATOS A BASE DE DATOS
 function actualizarBD(newnom, newtar)
 {
   
@@ -281,7 +419,16 @@ function actualizarBD(newnom, newtar)
 
 }
 
-//<------------------------------->
+function editarFilaBD(newnom, newtar, newid)
+{
+  var nombre = newnom;
+  var tarea = newtar;
+  var id = newid;
+
+  var updateBD = connection.query("UPDATE tareas SET nombre='" + nombre + "', tarea='" + tarea + "' WHERE ID=" + newid);
+}
+
+//<---------------------------------------------------------------------------------------------------------------->
 
 //COMPROBAR SI FICHERO EXISTE
 function fileExists(file, cb) {
