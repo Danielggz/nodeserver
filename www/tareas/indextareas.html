@@ -5,38 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Tareas</title>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="js/tareas.js"></script>
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css">
+    <script src=#></script>
 </head>
 
 <body>
         <div id="titulo">
-            <h1>Web de tareas</h1>
+            <h1>Bienvenido a la web de tareas</h1>
         </div>
 
         <div id="contenedor">
             <div id="formulario">
-                <form action="/" method="post" id="formulario">
-                    <input type="text" name="nombre" id="nombre" required placeholder="Nombre de usuario">
-                    <input type="text" name="tarea" id="tarea" required placeholder="nombre de la tarea">
-                    <input type="text" name="id" id="id" value="id_edit" hidden>
+                <form action="/login" method="post" id="formulario">
+                    <input type="text" name="login" id="login" required>
+                    <input type="password" name="pwd" id="pwd" required >
                     <button type="submit" id="enviar">Enviar</button>
                 </form>
-            </div>
-            
-            <div id="tabla">
-                <table>
-                    <thead>
-                        <th>id</th>
-                        <th>usuario</th>
-                        <th>tarea</th>
-                    
-                    </thead>
-                    <tbody>
-                        [sustituir]
-                    </tbody>
-                </table>
             </div>
        </div > 
         

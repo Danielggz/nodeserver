@@ -5,26 +5,16 @@ var mysql = require('mysql'); //LIBRERÍA MYSQL
 var app = express(); 
 
 
-
-//<------CONECTAR CON BASE DE DATOS MYSQL--------> 
-
 // NPM INSTALL MYSQL --SAVE (GUARDAR MYSQL EN PACKAGE.JSON)
 
-//CONECTAR CON BASE DE DATOS
-var connection = mysql.createConnection({
-   host: 'localhost',
-   user: 'master',
-   password: 'abc123.',
-   database: 'tareasdb',
-   port: 3306 //Puerto por defecto
+//<------CONECTAR CON BASE DE DATOS MYSQL--------> 
+connectBD('master', 'abc123.');
+
+app.post('/login', function(req, res){
+  //COMPROBAR EN BASE DE DATOS SI EXISTEN
 });
-connection.connect(function(error){
-   if(error){
-      throw error;
-   }else{
-      console.log('Conexion correcta. Conectado como master');
-   }
-});
+
+
 
 // create application/json parser
 var jsonParser = bodyParser.json();
@@ -68,6 +58,13 @@ app.post('/', function(req, res) {
 //EJECUTA LA LISTA DE TAREAS EN EL INDEX MEDIANTE LA BASE DE DATOS
 
 app.get("/", function(req, res){
+  fs.readFile('./www/tareas/indextareas.html', 'utf-8', function(err, text){
+
+    res.send(text);
+  });
+});
+
+app.get("/login", function(req, res){
   connection.query("SELECT * FROM tareas", function(error, result)
   {
     if(error)
@@ -78,7 +75,7 @@ app.get("/", function(req, res){
     {
       var registros = cargarTareasBD(result);
       
-      fs.readFile('./www/tareas/indextareas.html', 'utf-8', function(err, text){
+      fs.readFile('./www/tareas/webtareas.html', 'utf-8', function(err, text){
         text = text.replace("[sustituir]", registros);
     
         res.send(text);
@@ -124,7 +121,7 @@ app.get("/editarBD/:id?", function(req, res)
     {
       var registros = cargarTareasBD(result);
       
-      fs.readFile('./www/tareas/indextareas.html', 'utf-8', function(err, text)
+      fs.readFile('./www/tareas/webtareas.html', 'utf-8', function(err, text)
       {
         var fila = registros;
         for(var i=0; i<result.length; i++)
@@ -197,6 +194,29 @@ app.use(express.static('www/tareas'));
 
 //<---------------------------------------------MÉTODOS--------------------------------------------------------->
 
+
+
+//CONECTAR CON BASE DE DATOS
+
+function connectBD(usuario, pass)
+{
+  var connection = mysql.createConnection({
+    host: 'localhost',
+    user: usuario,
+    password: pass,
+    database: 'tareasdb',
+    port: 3306 //Puerto por defecto
+  });
+  connection.connect(function(error){
+    if(error){
+       throw error;
+    }else{
+       console.log('Conexion correcta. Conectado como' + usuario);
+    }
+  });
+}
+
+
 //CARGAR LA LISTA DE TAREAS PERO UTILIZANDO LA BASE DE DATOS
 function cargarTareasBD(arrayDB) 
 {
@@ -255,13 +275,8 @@ function editarFilaBD(newnom, newtar, newid)
 
 
 
-
-
 //<-------------INICIAR SERVIDOR----------------->
 
 var server = app.listen(3000, function () {
   console.log('Servidor web iniciado');
 });
-
-//FIN CONEXIÓN CON MYSQL
-//connection.end();
